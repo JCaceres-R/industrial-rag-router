@@ -1,0 +1,28 @@
+# Entornos virtuales
+venv/
+.venv/
+env/
+
+# Variables de entorno reales
+.env
+
+# Datos fuente pesados (PDF/CSV/XLSX originales)
+data/raw/*
+!data/raw/.gitkeep
+
+# Vector store generado
+data/vector_store/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# Streamlit
+.streamlit/
+
+# Sistema operativo / editor
+.DS_Store
+.vscode/
+*.log

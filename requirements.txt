@@ -1,0 +1,21 @@
+# Orquestación
+langgraph>=0.2.0
+langchain>=0.3.0
+langchain-groq>=0.2.0
+
+# Vector store / embeddings
+faiss-cpu>=1.8.0
+sentence-transformers>=3.0.0
+
+# Procesamiento de PDF
+pypdf>=4.0.0
+
+# Datos estructurados
+pandas>=2.2.0
+openpyxl>=3.1.0
+
+# Interfaz
+streamlit>=1.37.0
+
+# Utilidades
+python-dotenv>=1.0.0
