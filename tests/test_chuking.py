@@ -21,7 +21,7 @@ def ejecutar_pruebas():
     print("Prueba 1: Probando barrera de seguridad de tipos de archivo...")
     try:
         chunk_document(tipo_contenido="tabular", contenido="Columna1,Columna2\n1,2")
-        print("❌ Falla: El sistema permitió trocear un tabular. Revisa la lógica.")
+        print("Falla: El sistema permitió trocear un tabular. Revisa la lógica.")
     except ValueError as e:
         print(f"Éxito! El sistema bloqueó el tabular correctamente.")
         print(f"Mensaje de error capturado: {e}\n")
@@ -48,7 +48,7 @@ def ejecutar_pruebas():
             print(f"FIN: ...{chunks[0][-100:]}")
             print(f"Tamaño: {len(chunks[0])} caracteres")
 
-            print("\n--- 🔍 CHUNK 1 (Deberías ver solapamiento con el FIN del Chunk 0) ---")
+            print("\n---CHUNK 1 (Deberías ver solapamiento con el FIN del Chunk 0) ---")
             print(f"INICIO: {chunks[1][:150]}...")
             print(f"Tamaño: {len(chunks[1])} caracteres")
             
