@@ -14,6 +14,7 @@ from typing import cast
 from groq import Groq
 
 from src.graph.state import AgentState, Ruta
+from src.graph.utils import extraer_ultima_pregunta
 
 GROQ_MODEL_ROUTER = os.environ.get("GROQ_MODEL_ROUTER", "qwen/qwen3.6-27b")
 
@@ -43,21 +44,6 @@ Responde solo con una de estas palabras: {", ".join(RAMAS_VALIDAS)}"""
 
 CLIENTE_GROQ = Groq()
 
-def _extraer_ultima_pregunta(state: AgentState) -> str:
-    """
-    Extrae el texto del último mensaje del historial de forma segura.
-    Soporta tanto objetos con atributo .content como diccionarios con clave 'content'.
-    Si el historial está vacío o ausente, retorna cadena vacía.
-    """
-    mensajes = state.get("messages", [])
-    if not mensajes:
-        return ""
-
-    ultimo_mensaje = mensajes[-1]
-    if hasattr(ultimo_mensaje, "content"):
-        return ultimo_mensaje.content
-    return ultimo_mensaje.get("content", "")
-
 
 def _parsear_ruta(texto_respuesta: str) -> Ruta:
     """
@@ -79,7 +65,7 @@ def nodo_router(state: AgentState) -> dict:
     la clave 'ruta' con la rama clasificada. LangGraph fusiona el resto
     del estado automáticamente.
     """
-    pregunta = _extraer_ultima_pregunta(state)
+    pregunta = extraer_ultima_pregunta(state)
 
     if not pregunta:
         return {"ruta": "rag"}
