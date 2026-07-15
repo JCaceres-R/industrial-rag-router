@@ -3,7 +3,7 @@ src/graph/nodo_schema_api.py
 
 Nodo de LangGraph dedicado a resolver preguntas sobre el esquema de la API de sensores.
 Utiliza "Tool Calling" nativo para decidir qué función de consulta técnica 
-(definida en src/tools/api_schema.py) debe ejecutarse sobre el JSON del esquema.
+debe ejecutarse sobre el JSON del esquema.
 """
 
 from __future__ import annotations
@@ -15,98 +15,102 @@ from groq import Groq
 from src.graph.state import AgentState
 from src.graph.utils import extraer_ultima_pregunta
 
-# Importamos las funciones reales para inspeccionar el esquema de la API
+# Importamos las funciones EXACTAS de tu archivo de herramientas reales
+# (Asegúrate de que la ruta 'src.tools.api_schema' coincida con donde guardaste tu script)
 from src.tools.api_schema import (
     cargar_esquema_api,
-    obtener_info_endpoint,
-    listar_endpoints_por_metodo,
-    obtener_campos_payload,
-    obtener_codigos_respuesta,
-    resumen_completo_api
+    listar_endpoints,
+    obtener_esquema_endpoint,
+    obtener_ejemplo_payload,
+    interpretar_codigo_respuesta,
+    buscar_campo
 )
 
 GROQ_MODEL_TOOLS = os.environ.get("GROQ_MODEL_TOOLS", "llama-3.1-8b-instant")
 CLIENTE_GROQ = Groq()
 
-# Definición del esquema estricto de las herramientas para Groq
+# Definición del esquema estricto adaptado a TUS funciones reales
 HERRAMIENTAS_SCHEMA_API = [
     {
         "type": "function",
         "function": {
-            "name": "obtener_info_endpoint",
-            "description": "Devuelve la información detallada de un endpoint específico (descripción, método, parámetros).",
+            "name": "listar_endpoints",
+            "description": "Lista todos los endpoints disponibles en la API de sensores y su descripción general.",
             "parameters": {
                 "type": "object",
-                "properties": {
-                    "endpoint": {
-                        "type": "string",
-                        "description": "La ruta exacta del endpoint. Ej: /api/v1/sensors, /api/v1/sensors/alerts."
-                    }
-                },
-                "required": ["endpoint"]
+                "properties": {} 
             }
         }
     },
     {
         "type": "function",
         "function": {
-            "name": "listar_endpoints_por_metodo",
-            "description": "Filtra y lista todos los endpoints que utilizan un método HTTP específico (GET, POST, PUT, DELETE).",
+            "name": "obtener_esquema_endpoint",
+            "description": "Devuelve la lista de campos, tipos de datos y si son requeridos para un endpoint específico.",
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "metodo": {
+                    "path": {
                         "type": "string",
-                        "enum": ["GET", "POST", "PUT", "DELETE"],
-                        "description": "El método HTTP en mayúsculas."
+                        "description": "La ruta o alias del endpoint. Ej: motors, environment, /api/v1/telemetry/motors."
                     }
                 },
-                "required": ["metodo"]
+                "required": ["path"]
             }
         }
     },
     {
         "type": "function",
         "function": {
-            "name": "obtener_campos_payload",
-            "description": "Muestra la estructura, campos obligatorios y tipos de datos requeridos en el cuerpo (body/payload) de una petición.",
+            "name": "obtener_ejemplo_payload",
+            "description": "Proporciona un ejemplo de la estructura JSON (payload) que se debe enviar a un endpoint.",
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "endpoint": {
+                    "path": {
                         "type": "string",
-                        "description": "La ruta del endpoint que recibe el payload. Ej: /api/v1/sensors."
+                        "description": "La ruta o alias del endpoint. Ej: motors, environment."
                     }
                 },
-                "required": ["endpoint"]
+                "required": ["path"]
             }
         }
     },
     {
         "type": "function",
         "function": {
-            "name": "obtener_codigos_respuesta",
-            "description": "Lista los códigos de estado HTTP (200, 400, 500, etc.) que puede retornar un endpoint y qué significa cada uno.",
+            "name": "interpretar_codigo_respuesta",
+            "description": "Explica el significado de un código de estado HTTP específico para un endpoint en particular.",
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "endpoint": {
+                    "path": {
                         "type": "string",
-                        "description": "La ruta exacta del endpoint a consultar."
+                        "description": "La ruta del endpoint. Ej: motors."
+                    },
+                    "status_code": {
+                        "type": "integer",
+                        "description": "El código HTTP a consultar. Ej: 200, 400, 503."
                     }
                 },
-                "required": ["endpoint"]
+                "required": ["path", "status_code"]
             }
         }
     },
     {
         "type": "function",
         "function": {
-            "name": "resumen_completo_api",
-            "description": "Genera un mapeo global e índice general de toda la documentación de la API disponible.",
+            "name": "buscar_campo",
+            "description": "Busca en qué endpoints de la API se utiliza o aparece un campo específico.",
             "parameters": {
                 "type": "object",
-                "properties": {}
+                "properties": {
+                    "nombre_campo": {
+                        "type": "string",
+                        "description": "El nombre exacto o parcial del campo a buscar. Ej: rpm, status_code."
+                    }
+                },
+                "required": ["nombre_campo"]
             }
         }
     }
@@ -118,11 +122,11 @@ def nodo_schema_api(state: AgentState) -> dict:
     """
     pregunta = extraer_ultima_pregunta(state)
 
-    # 1. Cargar el archivo de especificación técnica de la API (JSON/Dict)
+    # 1. Cargar el JSON en memoria usando tu función real
     try:
         esquema = cargar_esquema_api()
     except Exception as e:
-        return {"resultado": {"encontrado": False, "mensaje": f"Error interno: No se pudo cargar el archivo del esquema de la API. Detalles: {e}"}}
+        return {"resultado": {"encontrado": False, "mensaje": f"Error cargando esquema: {e}"}}
 
     # 2. Llamada a Groq solicitando Tool Calling explícito
     respuesta = CLIENTE_GROQ.chat.completions.create(
@@ -130,7 +134,7 @@ def nodo_schema_api(state: AgentState) -> dict:
         messages=[
             {
                 "role": "system", 
-                "content": "Eres el arquitecto de software de Auvix. Tu único objetivo es inspeccionar la duda del desarrollador y seleccionar la herramienta de consulta de API exacta para resolverla. No inventes texto, SOLO invoca herramientas."
+                "content": "Eres el orquestador de software de Auvix. Tu objetivo es leer la duda sobre la API y seleccionar la herramienta exacta para resolverla. SOLO invoca herramientas."
             },
             {"role": "user", "content": pregunta}
         ],
@@ -151,24 +155,27 @@ def nodo_schema_api(state: AgentState) -> dict:
 
     dict_resultado = {}
 
-    # 4. Enrutamiento e invocación de la lógica de procesamiento local
-    if nombre_funcion == "obtener_info_endpoint":
-        dict_resultado = obtener_info_endpoint(esquema, argumentos.get("endpoint", ""))
+    # 4. Enrutamiento EXACTO a tus funciones de Python
+    # Nota: Le pasamos 'esquema' como primer argumento a todas, como lo definiste en tu script
+    if nombre_funcion == "listar_endpoints":
+        dict_resultado = listar_endpoints(esquema)
         
-    elif nombre_funcion == "listar_endpoints_por_metodo":
-        dict_resultado = listar_endpoints_por_metodo(esquema, argumentos.get("metodo", ""))
+    elif nombre_funcion == "obtener_esquema_endpoint":
+        dict_resultado = obtener_esquema_endpoint(esquema, argumentos.get("path", ""))
         
-    elif nombre_funcion == "obtener_campos_payload":
-        dict_resultado = obtener_campos_payload(esquema, argumentos.get("endpoint", ""))
+    elif nombre_funcion == "obtener_ejemplo_payload":
+        dict_resultado = obtener_ejemplo_payload(esquema, argumentos.get("path", ""))
         
-    elif nombre_funcion == "obtener_codigos_respuesta":
-        dict_resultado = obtener_codigos_respuesta(esquema, argumentos.get("endpoint", ""))
+    elif nombre_funcion == "interpretar_codigo_respuesta":
+        # Aseguramos que status_code entre como entero (int)
+        codigo = int(argumentos.get("status_code", 0))
+        dict_resultado = interpretar_codigo_respuesta(esquema, argumentos.get("path", ""), codigo)
         
-    elif nombre_funcion == "resumen_completo_api":
-        dict_resultado = resumen_completo_api(esquema)
+    elif nombre_funcion == "buscar_campo":
+        dict_resultado = buscar_campo(esquema, argumentos.get("nombre_campo", ""))
         
     else:
-        dict_resultado = {"encontrado": False, "mensaje": f"Función de esquema API no soportada: {nombre_funcion}"}
+        dict_resultado = {"encontrado": False, "mensaje": f"Función no soportada: {nombre_funcion}"}
 
-    # 5. Guardar el resultado estructurado en el AgentState
+    # 5. Guardar el resultado en el AgentState
     return {"resultado": dict_resultado}
