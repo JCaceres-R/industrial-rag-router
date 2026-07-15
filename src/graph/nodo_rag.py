@@ -20,9 +20,8 @@ Groq ni cuenta para el límite de TPM/RPM.
 from __future__ import annotations
 
 import os
-
-from state import AgentState
-from utils import extraer_ultima_pregunta
+from src.graph.state import AgentState
+from src.graph.utils import extraer_ultima_pregunta
 from src.rag.retriever import buscar_chunks_relevantes, formatear_contexto
 
 # Carpeta donde vectorstore.py persistió el índice FAISS + chunks.json.
