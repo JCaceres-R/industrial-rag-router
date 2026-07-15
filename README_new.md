@@ -163,4 +163,3 @@ pytest -q
 ## Licencia
 
 Proyecto educativo y de portafolio para demostrar un flujo completo de IA empresarial con RAG, herramientas, routing y despliegue en nube.
-
