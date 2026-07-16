@@ -6,10 +6,6 @@ env/
 # Variables de entorno reales
 .env
 
-# Datos fuente pesados (PDF/CSV/XLSX originales)
-data/raw/*
-!data/raw/.gitkeep
-
 # Vector store generado
 data/vector_store/
 

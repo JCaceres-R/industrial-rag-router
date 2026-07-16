@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Reporte de Auditoría de Redes y Protocolos de Enlace - Auvix</title>
+</head>
+<body>
+
+<h1>Reporte de Auditoría de Redes y Protocolos de Enlace</h1>
+<p><strong>Código de documento:</strong> AUVIX-AUD-NET-004 &nbsp;|&nbsp; <strong>Versión:</strong> 1.0 &nbsp;|&nbsp; <strong>Área responsable:</strong> Auditoría de Redes y Telecomunicaciones Industriales</p>
+
+<h2>1. Objetivo y Alcance de la Auditoría</h2>
+<p>
+El presente reporte documenta los resultados de la auditoría técnica realizada sobre la infraestructura de red de planta de Auvix, con énfasis en el desempeño de la capa de enlace de datos, la latencia de comunicación y la integridad del transporte de telemetría entre los controladores de campo y los servidores centrales de supervisión. La auditoría cubre la red troncal industrial, los enlaces hacia los controladores Edge y los nodos críticos de la Línea 4 de producción.
+</p>
+<ul>
+    <li>Evaluación de la red troncal Ethernet industrial y su esquema de tramas modificado.</li>
+    <li>Revisión del empaquetado de datos mediante protocolos ligeros de mensajería hacia los controladores Edge.</li>
+    <li>Medición de latencia media y pérdida de paquetes en los nodos críticos de la Línea 4.</li>
+    <li>Identificación de hallazgos y recomendaciones de mejora sobre la arquitectura de comunicaciones.</li>
+</ul>
+
+<h2>2. Red Troncal: Tramas Ethernet Industrial Modificadas</h2>
+<p>
+La red troncal de planta opera sobre una infraestructura Ethernet industrial (IEEE 802.3) que incorpora modificaciones a nivel de trama respecto al estándar comercial convencional, con el fin de soportar los requisitos de determinismo y prioridad de tráfico propios del entorno de manufactura de Auvix. Entre las adaptaciones identificadas durante la auditoría se encuentran las siguientes:
+</p>
+<ul>
+    <li>Inclusión de campos adicionales de etiquetado de prioridad (priority tagging) conforme a IEEE 802.1Q, empleados para separar el tráfico determinístico de control del tráfico de supervisión y telemetría no crítica.</li>
+    <li>Ajuste del tamaño máximo de carga útil (payload) en ciertos segmentos para reducir el jitter de transmisión en los enlaces hacia los variadores de frecuencia de los motores principales.</li>
+    <li>Implementación de mecanismos de redundancia de anillo (ring redundancy) a nivel de capa de enlace, que permiten reconfiguración de la topología en caso de falla de un enlace troncal sin interrupción prolongada del servicio.</li>
+    <li>Segmentación de dominios de colisión y de difusión mediante switches industriales gestionados, con políticas de VLAN específicas para tráfico de control, telemetría y mantenimiento remoto.</li>
+</ul>
+<p>
+La auditoría constató que el esquema de trama modificado se encuentra correctamente documentado en los planos de arquitectura de red vigentes, y que la segmentación por VLAN reduce de manera efectiva la contención de tráfico en los segmentos que sirven a los nodos críticos de producción.
+</p>
+
+<h2>3. Protocolos Ligeros hacia Controladores Edge: MQTT sobre TCP/IP</h2>
+<p>
+Para el empaquetado y transporte de datos de telemetría desde los dispositivos de campo hacia los controladores Edge, la planta utiliza el protocolo MQTT (Message Queuing Telemetry Transport) operando sobre TCP/IP. Este esquema fue evaluado como adecuado para el volumen y la naturaleza del tráfico de supervisión, dadas las siguientes características observadas:
+</p>
+<ul>
+    <li>Modelo de publicación-suscripción (publish/subscribe) que desacopla a los sensores y controladores de motores principales de los sistemas consumidores de datos, incluyendo el Historian y las plataformas de análisis de la planta.</li>
+    <li>Uso de un bróker MQTT centralizado a nivel de controlador Edge, que agrega la telemetría de múltiples nodos antes de su envío hacia los servidores centrales.</li>
+    <li>Configuración de niveles de calidad de servicio (QoS 0, 1 y 2) diferenciados según la criticidad de la variable transmitida, priorizando QoS 1 para variables de proceso relevantes como velocidad y corriente de motor.</li>
+    <li>Encabezados de mensaje de tamaño reducido en comparación con protocolos de mensajería más pesados, lo cual resulta favorable para los enlaces de ancho de banda limitado presentes en algunos segmentos de la planta.</li>
+</ul>
+<p>
+La auditoría identificó que el uso de MQTT sobre TCP/IP es consistente con las buenas prácticas de la industria para arquitecturas IoT industriales, si bien se recomienda revisar periódicamente los parámetros de tiempo de espera (keep-alive) del bróker para evitar reconexiones innecesarias en los segmentos de mayor latencia.
+</p>
+
+<h2>4. Métricas de Latencia y Pérdida de Paquetes - Nodos Críticos de la Línea 4</h2>
+<p>
+A continuación se presentan los resultados de las mediciones realizadas sobre los nodos críticos de comunicación de la Línea 4, correspondientes a los controladores de motores principales y sus respectivos puntos de agregación de telemetría.
+</p>
+
+<table border="1" cellpadding="6" cellspacing="0">
+    <thead>
+        <tr>
+            <th>Nodo Crítico</th>
+            <th>Segmento de Red</th>
+            <th>Latencia Media (ms)</th>
+            <th>Jitter (ms)</th>
+            <th>Pérdida de Paquetes (%)</th>
+            <th>Estado</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>L4-MOTOR-01</td>
+            <td>Troncal Ethernet Industrial</td>
+            <td>4.2</td>
+            <td>0.8</td>
+            <td>0.02</td>
+            <td>Aceptable</td>
+        </tr>
+        <tr>
+            <td>L4-MOTOR-02</td>
+            <td>Troncal Ethernet Industrial</td>
+            <td>5.1</td>
+            <td>1.1</td>
+            <td>0.05</td>
+            <td>Aceptable</td>
+        </tr>
+        <tr>
+            <td>L4-EDGE-GW-01</td>
+            <td>Enlace MQTT / Controlador Edge</td>
+            <td>12.7</td>
+            <td>2.4</td>
+            <td>0.18</td>
+            <td>En observación</td>
+        </tr>
+        <tr>
+            <td>L4-MOTOR-03</td>
+            <td>Troncal Ethernet Industrial</td>
+            <td>6.8</td>
+            <td>1.5</td>
+            <td>0.09</td>
+            <td>Aceptable</td>
+        </tr>
+        <tr>
+            <td>L4-SENSOR-VIB-04</td>
+            <td>Enlace Inalámbrico de Campo</td>
+            <td>28.3</td>
+            <td>6.2</td>
+            <td>1.35</td>
+            <td>Requiere seguimiento</td>
+        </tr>
+        <tr>
+            <td>L4-EDGE-GW-02</td>
+            <td>Enlace MQTT / Controlador Edge</td>
+            <td>14.5</td>
+            <td>2.9</td>
+            <td>0.21</td>
+            <td>En observación</td>
+        </tr>
+    </tbody>
+</table>
+
+<h2>5. Hallazgos y Recomendaciones</h2>
+<p>
+En términos generales, la infraestructura de red troncal presenta un desempeño estable dentro de los parámetros esperados para una red Ethernet industrial. Sin embargo, la auditoría identificó los siguientes puntos de atención:
+</p>
+<ul>
+    <li>El nodo <strong>L4-SENSOR-VIB-04</strong>, correspondiente a un enlace inalámbrico de campo, presenta una latencia media y una tasa de pérdida de paquetes superiores al resto de los nodos críticos evaluados, por lo que se recomienda su seguimiento prioritario y una eventual revisión de la cobertura de radiofrecuencia en dicho sector de la Línea 4.</li>
+    <li>Los puntos de agregación Edge (<strong>L4-EDGE-GW-01</strong> y <strong>L4-EDGE-GW-02</strong>) muestran una latencia moderadamente superior a los nodos conectados directamente por la troncal Ethernet, atribuible al procesamiento adicional del bróker MQTT; se recomienda evaluar el dimensionamiento de recursos de dichos controladores Edge.</li>
+    <li>Se recomienda mantener la política actual de segmentación por VLAN y de etiquetado de prioridad, dado que contribuye favorablemente a la estabilidad observada en los nodos de la troncal principal.</li>
+    <li>Se sugiere establecer un ciclo de auditoría periódico trimestral sobre los nodos críticos de la Línea 4, con el fin de detectar tempranamente degradaciones progresivas en la calidad del enlace.</li>
+</ul>
+
+<h2>6. Conclusión de la Auditoría</h2>
+<p>
+La red de comunicaciones de la planta, sustentada en una troncal Ethernet industrial con tramas modificadas y en el uso de MQTT sobre TCP/IP para el transporte de telemetría hacia los controladores Edge, cumple de manera general con los criterios de desempeño exigidos para la operación de los lazos de control de motores principales de la Línea 4. Los hallazgos reportados en la sección 5 deben ser atendidos conforme al plan de seguimiento del Departamento de Auditoría de Redes y Telecomunicaciones Industriales de Auvix.
+</p>
+
+</body>
+</html>

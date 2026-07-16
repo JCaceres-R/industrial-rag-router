@@ -1,0 +1,147 @@
+{
+  "api_name": "Auvix IoT Sensor API",
+  "version": "1.0.0",
+  "description": "Esquema de API y payloads de sensores para la red industrial de Auvix. Define los endpoints, la estructura de datos y ejemplos de carga útil.",
+  "endpoints": [
+    {
+      "path": "/api/v1/telemetry/motors",
+      "method": "POST",
+      "description": "Endpoint para el envío de telemetría de motores eléctricos industriales.",
+      "request": {
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "schema": {
+            "type": "object",
+            "required": ["node_id", "timestamp", "rpm", "consumo_kwh", "status_code"],
+            "properties": {
+              "node_id": {
+                "type": "string",
+                "description": "Identificador único del nodo sensor asociado al motor.",
+                "example": "MOTOR-A17-42"
+              },
+              "timestamp": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Marca de tiempo en formato ISO 8601 (UTC).",
+                "example": "2026-07-03T14:23:00Z"
+              },
+              "rpm": {
+                "type": "number",
+                "description": "Velocidad de rotación en revoluciones por minuto.",
+                "minimum": 0,
+                "example": 1785
+              },
+              "temperatura_celsius": {
+                "type": "number",
+                "description": "Temperatura del motor en grados Celsius.",
+                "example": 68.4
+              },
+              "consumo_kwh": {
+                "type": "number",
+                "description": "Consumo eléctrico acumulado en kilovatios-hora.",
+                "minimum": 0,
+                "example": 12345.67
+              },
+              "status_code": {
+                "type": "integer",
+                "description": "Código de estado del motor. 200: Operación normal, 503: Falla de rotor (servicio no disponible).",
+                "enum": [200, 503],
+                "example": 200
+              }
+            }
+          },
+          "example": {
+            "node_id": "MOTOR-A17-42",
+            "timestamp": "2026-07-03T14:23:00Z",
+            "rpm": 1785,
+            "temperatura_celsius": 68.4,
+            "consumo_kwh": 12345.67,
+            "status_code": 200
+          }
+        }
+      },
+      "responses": [
+        {
+          "status_code": 200,
+          "description": "Datos de telemetría recibidos correctamente."
+        },
+        {
+          "status_code": 503,
+          "description": "Falla de rotor detectada. El motor no está operativo."
+        }
+      ]
+    },
+    {
+      "path": "/api/v1/telemetry/environment",
+      "method": "POST",
+      "description": "Endpoint para el envío de telemetría ambiental (temperatura, humedad, presión).",
+      "request": {
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "schema": {
+            "type": "object",
+            "required": ["node_id", "timestamp", "temperatura_celsius", "humedad_porcentaje", "status_code"],
+            "properties": {
+              "node_id": {
+                "type": "string",
+                "description": "Identificador único del nodo sensor ambiental.",
+                "example": "ENV-SECTOR-B3"
+              },
+              "timestamp": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Marca de tiempo en formato ISO 8601 (UTC).",
+                "example": "2026-07-03T14:23:00Z"
+              },
+              "temperatura_celsius": {
+                "type": "number",
+                "description": "Temperatura ambiente en grados Celsius.",
+                "example": 24.1
+              },
+              "humedad_porcentaje": {
+                "type": "number",
+                "description": "Humedad relativa del aire en porcentaje (0-100).",
+                "minimum": 0,
+                "maximum": 100,
+                "example": 55.8
+              },
+              "presion_atm_hpa": {
+                "type": "number",
+                "description": "Presión atmosférica en hectopascales (opcional).",
+                "example": 1013.2
+              },
+              "status_code": {
+                "type": "integer",
+                "description": "Código de estado del sensor. 200: OK, 500: Error interno del sensor.",
+                "enum": [200, 500],
+                "example": 200
+              }
+            }
+          },
+          "example": {
+            "node_id": "ENV-SECTOR-B3",
+            "timestamp": "2026-07-03T14:23:00Z",
+            "temperatura_celsius": 24.1,
+            "humedad_porcentaje": 55.8,
+            "presion_atm_hpa": 1013.2,
+            "status_code": 200
+          }
+        }
+      },
+      "responses": [
+        {
+          "status_code": 200,
+          "description": "Datos ambientales recibidos y almacenados."
+        },
+        {
+          "status_code": 500,
+          "description": "Error interno del servidor o del sensor al procesar la petición."
+        }
+      ]
+    }
+  ]
+}

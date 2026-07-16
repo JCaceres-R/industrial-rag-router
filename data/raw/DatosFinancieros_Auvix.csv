@@ -1,0 +1,21 @@
+ID_Transaccion,Fecha,Departamento,Categoria,Descripcion_Articulo,Monto_USD,Estado_Aprobacion
+TXQ3-0001,2026-07-02,Infraestructura,Hardware,Compra de ventiladores de refrigeración,1245.50,Aprobado
+TXQ3-0002,2026-07-05,Infraestructura,Hardware,Componentes para reparación de fallos de arranque en fuentes de poder,2875.90,Aprobado
+TXQ3-0003,2026-07-08,Operaciones,OpEx,Licencias de monitoreo para servidores,985.40,Aprobado
+TXQ3-0004,2026-07-11,IoT,Hardware,Sensores industriales para nodos IoT,4310.75,Pendiente
+TXQ3-0005,2026-07-14,Infraestructura,Hardware,Discos SSD empresariales NVMe para servidores,5160.25,Aprobado
+TXQ3-0006,2026-07-17,Operaciones,OpEx,Servicio de mantenimiento preventivo de racks,1420.00,Aprobado
+TXQ3-0007,2026-07-20,Seguridad TI,Hardware,Firewall de borde con módulos de expansión,6845.80,Rechazado
+TXQ3-0008,2026-07-23,IoT,Hardware,Gateway industrial para dispositivos IoT,3725.60,Aprobado
+TXQ3-0009,2026-07-26,Infraestructura,Hardware,Módulos de memoria ECC DDR5 para servidores,2980.45,Aprobado
+TXQ3-0010,2026-07-29,Operaciones,OpEx,Renovación de soporte técnico de infraestructura,2175.30,Pendiente
+TXQ3-0011,2026-08-03,Infraestructura,Hardware,Tarjetas de red 25GbE para servidores,4635.95,Aprobado
+TXQ3-0012,2026-08-08,IoT,Hardware,Controladores de comunicación Modbus para IoT,1895.70,Aprobado
+TXQ3-0013,2026-08-13,Operaciones,OpEx,Servicios de respaldo en nube híbrida,2580.85,Aprobado
+TXQ3-0014,2026-08-18,Infraestructura,Hardware,Unidades UPS para sala de servidores,7540.20,Pendiente
+TXQ3-0015,2026-08-24,Seguridad TI,Hardware,Cámaras IP para monitoreo del centro de datos,3360.40,Aprobado
+TXQ3-0016,2026-09-01,IoT,Hardware,Microcontroladores para expansión de dispositivos IoT,1145.95,Aprobado
+TXQ3-0017,2026-09-07,Operaciones,OpEx,Auditoría de infraestructura tecnológica,3950.00,Aprobado
+TXQ3-0018,2026-09-14,Infraestructura,Hardware,Cables DAC de alta velocidad para servidores,875.65,Rechazado
+TXQ3-0019,2026-09-21,Infraestructura,Hardware,Procesadores para actualización de servidores,12890.35,Aprobado
+TXQ3-0020,2026-09-28,Operaciones,OpEx,Capacitación técnica para administración de infraestructura,1675.15,Pendiente
