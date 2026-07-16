@@ -1,166 +1,308 @@
-# Industrial RAG Router
+# 🏭 Industrial RAG Router
 
-Aplicación de asistencia inteligente para entornos industriales basada en un sistema RAG y un grafo de routing con LangGraph. El proyecto combina:
+<p align="center">
 
-- búsqueda semántica sobre documentación técnica,
-- herramientas determinísticas para análisis financiero y telemetría,
-- un router multi-rama que dirige las consultas al módulo correcto,
-- una interfaz web construida con Streamlit.
+![Python](https://img.shields.io/badge/Python-3.11+-blue?style=for-the-badge&logo=python)
+![LangGraph](https://img.shields.io/badge/LangGraph-Multi--Agent-green?style=for-the-badge)
+![LangChain](https://img.shields.io/badge/LangChain-RAG-success?style=for-the-badge)
+![FAISS](https://img.shields.io/badge/FAISS-Vector%20Database-orange?style=for-the-badge)
+![Groq](https://img.shields.io/badge/Groq-LLM-black?style=for-the-badge)
 
-El proyecto está pensado para ejecutarse de forma local o en contenedores, y para desplegarse en OCI Always Free sobre una VM ARM.
+</p>
 
----
-
-## Características principales
-
-- Interfaz Streamlit con experiencia visual orientada a operaciones industriales.
-- Router basado en LangGraph para clasificar consultas entre:
-  - documentación técnica (RAG),
-  - financiero,
-  - telemetría,
-  - esquema API.
-- Recuperación semántica con embeddings y FAISS.
-- Análisis tabular y financiero con pandas.
-- Soporte para despliegue con Docker y Docker Compose.
-- Preparado para ejecución en OCI VM.Standard.A1.Flex.
+> **Industrial AI platform based on Retrieval-Augmented Generation (RAG) and LangGraph that intelligently routes user queries to specialized AI agents for technical documentation, telemetry, financial analysis and API schemas.**
 
 ---
 
-## Estructura del proyecto
+# Overview
+
+Industrial RAG Router is a modular **multi-agent Retrieval-Augmented Generation (RAG)** system designed for industrial environments.
+
+Instead of relying on a single Large Language Model, the platform classifies each incoming query and routes it to a specialized AI agent capable of solving a specific task.
+
+The system combines:
+
+- 🧠 Intelligent query routing
+- 📄 Semantic document retrieval
+- 🤖 Specialized AI agents
+- ⚡ High-speed inference with Groq
+- 🗂️ Vector search using FAISS
+- 🔄 Workflow orchestration with LangGraph
+
+The architecture is modular, scalable, and designed to easily incorporate additional agents or knowledge sources.
+
+---
+
+# ✨ Features
+
+- Multi-Agent Architecture
+- Intelligent Query Routing
+- Retrieval-Augmented Generation (RAG)
+- LangGraph Workflow Orchestration
+- Semantic Search with FAISS
+- PDF Knowledge Base
+- Conversational Memory
+- Modular Node Design
+- Environment-based Configuration
+- Easily Extensible
+
+---
+
+# 🏗 Architecture
+
+The application is orchestrated by **LangGraph**.
+
+Each user query is first analyzed by the **Router**, which determines which specialized agent should process it.
+
+```
+                 User Question
+                       │
+                       ▼
+                 Query Router
+                       │
+     ┌─────────┬────────────┬──────────────┬
+     ▼         ▼            ▼              ▼
+   RAG      Financial   Telemetry     Schema API
+   Agent      Agent        Agent          Agent
+     │         │            │              │
+     └─────────┴────────────┴──────────────┘
+                       │
+                       ▼
+              Response Generator
+                       │
+                       ▼
+                    Final Answer
+```
+
+---
+
+## LangGraph Workflow
+
+<p align="center">
+    <img src="docs/grafo.jpeg" width="900">
+</p>
+
+---
+
+#  Components
+
+| Component | Description |
+|------------|-------------|
+| **Router** | Determines which specialized agent should handle the request. |
+| **RAG Node** | Retrieves information from indexed industrial documentation. |
+| **Financial Node** | Handles financial and budgeting related questions. |
+| **Telemetry Node** | Processes industrial telemetry and sensor-related queries. |
+| **Schema API Node** | Answers questions about API schemas and endpoints. |
+| **Response Node** | Standardizes and formats the final response. |
+
+---
+
+#  Technology Stack
+
+| Category | Technologies |
+|----------|--------------|
+| Language | Python |
+| LLM | Groq |
+| Framework | LangGraph |
+| RAG | LangChain |
+| Vector Store | FAISS |
+| Embeddings | Sentence Transformers |
+| UI | Streamlit |
+| Documents | PDF |
+| Data | Pandas |
+| Environment | python-dotenv |
+
+---
+
+# 📂 Project Structure
 
 ```text
 industrial-rag-router/
-├── app.py                  # Punto de entrada de Streamlit
-├── Dockerfile              # Imagen Docker para la aplicación
-├── docker-compose.yml      # Orquestación local con Docker Compose
-├── requirements.txt        # Dependencias de Python
-├── .env.example            # Variables de entorno de ejemplo
-├── data/                   # Datos y documentos fuente
-├── docs/                   # Documentación técnica
-├── faiss_index/            # Índice FAISS y chunks
-├── src/                    # Código fuente del proyecto
-│   ├── graph/              # Router, nodos y estado del grafo
-│   ├── ingestion/          # Carga de documentos y loaders
-│   ├── rag/                # Chunking, retriever y vectorstore
-│   ├── tools/              # Herramientas financieras, telemétricas y de esquema
-│   └── ui/                 # Componentes de interfaz
-└── tests/                  # Pruebas unitarias
+
+├── data/
+│   ├── documents/
+│   └── vectorstore/
+│
+├── docs/
+│   └── images/
+│       └── langgraph_workflow.png
+│
+├── src/
+│   ├── graph/
+│   │   ├── router.py
+│   │   ├── state.py
+│   │   └── graph.py
+│   │
+│   ├── nodes/
+│   │   ├── nodo_rag.py
+│   │   ├── nodo_financiero.py
+│   │   ├── nodo_telemetria.py
+│   │   ├── nodo_schema_api.py
+│   │   └── nodo_respuesta.py
+│   │
+│   ├── services/
+│   ├── utils/
+│   └── prompts/
+│
+├── app.py
+├── requirements.txt
+└── README.md
 ```
 
 ---
 
-## Requisitos
+#  Installation
 
-- Python 3.10 o superior
-- Docker y Docker Compose (opcional, para despliegue en contenedores)
-- Cuenta de Groq con API key
-
----
-
-## Variables de entorno
-
-Copia el archivo [.env.example](.env.example) a `.env` y completa los valores:
+Clone the repository.
 
 ```bash
-copy .env.example .env
+git clone https://github.com/JCaceres-R/industrial-rag-router.git
+
+cd industrial-rag-router
 ```
 
-Variables esperadas:
-
-```env
-GROQ_API_KEY=tu_api_key
-GROQ_MODEL=openai/gpt-oss-120b
-VECTOR_STORE_PATH=./data/vector_store
-STREAMLIT_PORT=8501
-```
-
----
-
-## Ejecución local
-
-### Opción 1: Python
+Create a virtual environment.
 
 ```bash
 python -m venv .venv
+```
+
+Activate it.
+
+### Windows
+
+```bash
 .venv\Scripts\activate
+```
+
+### Linux / macOS
+
+```bash
+source .venv/bin/activate
+```
+
+Install dependencies.
+
+```bash
 pip install -r requirements.txt
-copy .env.example .env
+```
+
+---
+
+# 🔑 Environment Variables
+
+Create a `.env` file.
+
+```env
+GROQ_API_KEY=
+
+GROQ_MODEL=
+
+EMBEDDING_MODEL=
+
+VECTOR_DB_PATH=
+```
+
+---
+
+# ▶️ Running
+
+```bash
 streamlit run app.py
 ```
 
-### Opción 2: Docker
+---
 
-```bash
-docker compose up --build
+# 🔄 Query Flow
+
 ```
+User Question
 
-La aplicación quedará disponible en:
+      │
 
-```text
-http://localhost:8501
+      ▼
+
+Query Classification
+
+      │
+
+      ▼
+
+Agent Selection
+
+      │
+
+      ▼
+
+Knowledge Retrieval (optional)
+
+      │
+
+      ▼
+
+LLM Reasoning
+
+      │
+
+      ▼
+
+Response Formatting
+
+      │
+
+      ▼
+
+Final Answer
 ```
 
 ---
 
-## Despliegue en OCI Always Free
+# 🚀 Roadmap
 
-Este proyecto está preparado para desplegarse en una VM ARM como `VM.Standard.A1.Flex`.
+- [x] Multi-Agent Architecture
+- [x] LangGraph Workflow
+- [x] Intelligent Router
+- [x] RAG Integration
+- [x] FAISS Vector Database
+- [x] Semantic Retrieval
+- [x] Modular Nodes
 
-### Recomendación de infraestructura
+Future improvements:
 
-- Shape: `VM.Standard.A1.Flex`
-- CPU/RAM: 2 OCPUs / 12 GB RAM
-- Sistema operativo: Ubuntu 24.04 ARM64 o Oracle Linux 8/9
-- Puerto abierto: `8501`
-
-### Pasos básicos en la VM
-
-```bash
-sudo apt update
-sudo apt install -y docker.io docker-compose-plugin
-sudo systemctl enable --now docker
-sudo usermod -aG docker $USER
-```
-
-Luego:
-
-```bash
-git clone <tu-repositorio>
-cd industrial-rag-router
-cp .env.example .env
-nano .env
-docker compose up --build -d
-```
-
-Para verificar:
-
-```bash
-curl http://localhost:8501
-```
-
-> En OCI debes abrir el puerto 8501 en la Security List o NSG para permitir acceso público.
+- [ ] Docker Support
+- [ ] PostgreSQL Persistence
+- [ ] Hybrid Search
+- [ ] OCI Deployment
+- [ ] REST API
+- [ ] Authentication
+- [ ] Agent Monitoring
+- [ ] Observability with LangSmith
 
 ---
 
-## Pruebas
+# 🤝 Contributing
 
-Ejecuta las pruebas con:
+Contributions, issues and feature requests are welcome.
 
-```bash
-pytest -q
-```
+Feel free to open an issue or submit a pull request.
 
 ---
 
-## Notas importantes
+# 📜 License
 
-- El proyecto usa datos locales y un índice FAISS, por lo que la carpeta `data/` y `faiss_index/` deben estar presentes en el entorno de ejecución.
-- Para producción, conviene proteger las credenciales con variables de entorno del proveedor cloud o un gestor de secretos.
-- Si deseas exponer la app con HTTPS, puedes colocar un proxy inverso como Nginx o Caddy delante de Streamlit.
+This project is licensed under the MIT License.
 
 ---
 
-## Licencia
+# 👨‍💻 Author
 
-Proyecto educativo y de portafolio para demostrar un flujo completo de IA empresarial con RAG, herramientas, routing y despliegue en nube.
+**Johan Sebastián Cáceres Rodríguez**
 
+Electronic Engineer • AI Engineer • Data & AI Engineering
+
+- 💼 LinkedIn: [*LinkedIn*](https://www.linkedin.com/in/johan-sebastian-caceres-rodriguez-5b19a135b)
+- 🐙 GitHub: https://github.com/JCaceres-R
+
+---
+
+⭐ If you found this project useful, consider giving it a star!
