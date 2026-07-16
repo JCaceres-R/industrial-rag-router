@@ -15,6 +15,13 @@ Costo en llamadas Groq de este nodo: CERO. La vectorización de la
 pregunta usa el mismo modelo local de sentence-transformers que los
 chunks (paraphrase-multilingual-MiniLM-L12-v2), no consume cuota de
 Groq ni cuenta para el límite de TPM/RPM.
+
+CORRECCIÓN (memoria en Render/512MB): antes, buscar_chunks_relevantes()
+se llamaba sin pasar 'modelo', así que cada pregunta RAG disparaba una
+carga completa y nueva de SentenceTransformer (PyTorch + pesos del
+modelo) desde cero. Ahora se pasa explícitamente el singleton cacheado
+obtener_modelo_embeddings(), que carga el modelo UNA sola vez por
+proceso y reutiliza esa misma instancia en cada pregunta siguiente.
 """
 
 from __future__ import annotations
@@ -23,6 +30,7 @@ import os
 from src.graph.state import AgentState
 from src.graph.utils import extraer_ultima_pregunta
 from src.rag.retriever import buscar_chunks_relevantes, formatear_contexto
+from src.rag.vectorstore import obtener_modelo_embeddings
 
 # Carpeta donde vectorstore.py persistió el índice FAISS + chunks.json.
 CARPETA_VECTORSTORE = os.environ.get("CARPETA_VECTORSTORE", "data/vectorstore")
@@ -31,7 +39,7 @@ CARPETA_VECTORSTORE = os.environ.get("CARPETA_VECTORSTORE", "data/vectorstore")
 # retriever.py. Se centraliza acá para poder ajustarlo sin tocar el
 # resto del grafo.
 K_CHUNKS = int(os.environ.get("RAG_K_CHUNKS", "3"))
-DISTANCIA_MAXIMA = os.environ.get("RAG_DISTANCIA_MAXIMA") 
+DISTANCIA_MAXIMA = os.environ.get("RAG_DISTANCIA_MAXIMA")
 DISTANCIA_MAXIMA = float(DISTANCIA_MAXIMA) if DISTANCIA_MAXIMA else None
 
 
@@ -46,6 +54,7 @@ def nodo_rag(state: AgentState) -> dict:
         pregunta=pregunta,
         carpeta_vectorstore=CARPETA_VECTORSTORE,
         k=K_CHUNKS,
+        modelo=obtener_modelo_embeddings(),  # singleton: no recarga en cada pregunta
         distancia_maxima=DISTANCIA_MAXIMA,
     )
 

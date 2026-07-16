@@ -13,12 +13,15 @@ gratis, sin consumir tu cuota de tokens del LLM.
 
 import os
 import json
+from functools import lru_cache
+
 import numpy as np
 import faiss
 from sentence_transformers import SentenceTransformer
 
 # Modelo de embeddings pre-entrenado, liviano, multilingüe.
-# Corre localmente (se descarga una vez, ~90MB, y luego funciona sin internet).
+# Corre localmente (se descarga una vez, ~90MB, y luego funciona sin internet
+# SI el proceso mantiene la misma instancia en memoria; ver obtener_modelo_embeddings()).
 NOMBRE_MODELO_EMBEDDINGS = "paraphrase-multilingual-MiniLM-L12-v2"
 
 
@@ -26,11 +29,40 @@ def cargar_modelo_embeddings() -> SentenceTransformer:
     """
     Carga el modelo de embeddings en memoria.
 
-    Se separa en su propia función porque cargar el modelo es "costoso"
-    (tarda unos segundos). Conviene cargarlo UNA vez y reutilizarlo,
-    no volver a llamarlo cada vez que se procesa un documento.
+    ADVERTENCIA: esta función SIEMPRE crea una instancia nueva de
+    SentenceTransformer (con su carga de pesos y overhead de PyTorch
+    incluido). Llamarla en cada consulta del usuario es lo que causó
+    el agotamiento de memoria en Render (512MB) — cada pregunta RAG
+    recargaba el modelo entero desde cero.
+
+    Para el pipeline real (nodo_rag.py, retriever.py) usa SIEMPRE
+    obtener_modelo_embeddings() en su lugar, que cachea la instancia.
+    Esta función queda como bloque de construcción de bajo nivel y para
+    scripts de una sola ejecución (como construir_vectorstore() en un
+    test manual).
     """
     return SentenceTransformer(NOMBRE_MODELO_EMBEDDINGS)
+
+
+@lru_cache(maxsize=1)
+def obtener_modelo_embeddings() -> SentenceTransformer:
+    """
+    Versión cacheada de cargar_modelo_embeddings().
+
+    lru_cache(maxsize=1) garantiza que SentenceTransformer(...) se
+    ejecute UNA sola vez por proceso vivo, sin importar cuántas
+    preguntas RAG lleguen después. Todas las llamadas subsiguientes
+    devuelven la MISMA instancia ya cargada en RAM — no hay recarga.
+
+    Este es el mismo patrón "singleton" que ya usas para CLIENTE_GROQ
+    en router.py / nodo_respuesta.py / utils.py, aplicado ahora al
+    modelo de embeddings, que es el consumidor de memoria pesado del
+    lado del RAG.
+
+    Úsala en cualquier lugar del grafo que necesite vectorizar texto
+    (nodo_rag.py, retriever.py) en vez de cargar_modelo_embeddings().
+    """
+    return cargar_modelo_embeddings()
 
 
 def construir_vectorstore(chunks: list[str], carpeta_destino: str, modelo: SentenceTransformer = None) -> None:
@@ -41,8 +73,9 @@ def construir_vectorstore(chunks: list[str], carpeta_destino: str, modelo: Sente
         chunks: lista de fragmentos de texto (lo que devuelve chunking.chunk_text()).
         carpeta_destino: dónde se guarda el índice FAISS y los textos originales.
         modelo: instancia ya cargada de SentenceTransformer. Si no se pasa,
-                se carga una nueva (útil para pruebas rápidas, pero en el
-                pipeline real conviene reutilizar un modelo ya cargado).
+                se usa el singleton cacheado (obtener_modelo_embeddings()),
+                para no disparar una carga extra si ya hay una instancia
+                viva en el proceso.
 
     Guarda dos archivos en carpeta_destino:
         - index.faiss   -> los vectores (lo que FAISS usa para buscar)
@@ -52,7 +85,7 @@ def construir_vectorstore(chunks: list[str], carpeta_destino: str, modelo: Sente
                            el "traductor" de vuelta a texto legible.
     """
     if modelo is None:
-        modelo = cargar_modelo_embeddings()
+        modelo = obtener_modelo_embeddings()
 
     # encode() convierte cada string en un vector de números (un embedding).
     embeddings = modelo.encode(chunks, show_progress_bar=False)
@@ -84,6 +117,12 @@ def cargar_vectorstore(carpeta_origen: str):
 
     Esta función es la que usará retriever.py (el siguiente módulo) para
     no tener que reconstruir el vectorstore cada vez que llega una pregunta.
+
+    Nota: esta función SÍ vuelve a leer index.faiss y chunks.json desde
+    disco en cada llamada. Es una operación barata (archivos pequeños,
+    milisegundos de I/O) comparada con recargar el modelo de embeddings,
+    así que no necesita cachearse con la misma urgencia. Si en el futuro
+    el corpus crece mucho, se puede aplicar el mismo patrón de singleton.
     """
     indice = faiss.read_index(os.path.join(carpeta_origen, "index.faiss"))
 
