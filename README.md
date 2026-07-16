@@ -20,6 +20,10 @@ Industrial RAG Router is a modular **multi-agent Retrieval-Augmented Generation 
 
 Instead of relying on a single Large Language Model, the platform classifies each incoming query and routes it to a specialized AI agent capable of solving a specific task.
 
+You can run it on : 
+https://industrial-rag-router-gabuelhevav8rwxtzyygjk.streamlit.app/
+
+
 The system combines:
 
 - 🧠 Intelligent query routing
